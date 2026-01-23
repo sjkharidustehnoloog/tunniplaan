@@ -1,0 +1,245 @@
+<html>
+<head>
+<meta http-equiv="expires" content="0">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="gp-Untis 2025">
+<title>Navigation</title>
+<script language="JavaScript" src="../untisscripts.js"></script>
+<link rel="stylesheet" href="../untisinfo.css" type="text/css">
+
+<script LANGUAGE="JavaScript">
+var topDir = "w";
+
+function PopulateElementOption(Form, entries, flag)
+{
+ var idx = 0;
+ if (flag & 1)
+ {
+   Form.element[0] = new Option("-Kõik-", 0);
+   idx++;
+ }
+ if (flag == 0 || flag & 2)
+ {
+  for (i = 0; i < entries.length; i++, idx++)
+  {
+    Form.element[idx] = new Option(entries[i], i+1);
+  }
+ }
+ if (idx > 0)
+ {
+    Form.element.selectedIndex = 0;
+    doDisplayTimetable(Form, topDir);
+ }
+}
+
+var classes = ["1a","1b","2a","2b","3a","3b","4a","4b","5a","5b","6a","6b","7a","7b","8a","8b","9a","9b","10SO","10SP","11SO","11SP","12SO","12SP"];
+var teachers = ["Aasa","Adams","Dreiling","Hindriks","Jaeski","Jaska","Joandi","Jänes","Jürgen","Kesanurm","Kiisma","Kivisoo","Kuresoo","Kõvatomas","Lassmann","Lõhmus","Mankin","Murd","Nurk","Puusepp","Rantanen-Kõks","Reier","Roosi","Roosve","Sadam","Salu","Sankari","Sonk","Taimre","Tamm","Univer","Upser","Urbel","Vaarik","Valdmaa","Varusk","Viksi","Vändre","Võsa","Treener","Vomm"];
+var rooms = ["105","104","103","114","115","116","204","207","206","208","209","210","211","212","213","302","301","304","305","306","307","308","309","311","Saal1","Saal2","Saal3","Saal4","Aula","Raam"];
+var flcl = 1; var flte = 1;
+
+function ChangeStudentOptions(Form)
+{
+ var type = Form.type[Form.type.selectedIndex].value;
+ if (type != "s")
+    return;
+ var nr = Form.classes[Form.classes.selectedIndex].value;
+ Form.element.length = 0;
+ var idx = 0;
+ for (i = 0; i < students.length; i++)
+ {
+   if (nr == 0 || studtable[i] == nr)
+   {
+      Form.element[idx] = new Option(students[i], i+1);
+      idx++;
+   }
+ }
+ doDisplayTimetable(Form, topDir);
+}
+
+function ChangeElementOptions(Form)
+{
+ setselclass("empty");
+ Form.element.length = 0;
+ var type = Form.type[Form.type.selectedIndex].value;
+ switch(type)
+ {
+    case "c": PopulateElementOption(Form, classes, 0); break;
+    case "t": PopulateElementOption(Form, teachers, 0); break;
+    case "r": PopulateElementOption(Form, rooms, 0); break;
+    case "s":
+        setselclass("restore");
+        PopulateElementOption(Form, students, 0);
+        break;
+ }
+ return;
+}
+
+function SelectElement(Form, name)
+{
+ var art = getParameter(parent.location.href, "art");
+ if (art != "")
+ {
+  for (var i = 0; i < Form.type.length; i++)
+  {
+   if (Form.type[i].value == art)
+   {
+    Form.type.selectedIndex = i;
+    break;
+   }
+  }
+ }
+ ChangeElementOptions(Form);
+ for (var i = 0; i < Form.element.length; i++)
+ {
+  if (Form.element[i].text == name)
+  {
+   Form.element.selectedIndex = i;
+   break;
+  }
+ }
+}
+
+function OnLoad(Form)
+{
+ setselclass("save");
+
+ // vali automaatselt nädal 39
+ for (var i = 0; i < Form.week.options.length; i++)
+ {
+   if (Form.week.options[i].value == "39")
+     Form.week.options[i].selected = true;
+ }
+
+ // vali vaikimisi tüübiks "Klassid"
+ for (var t = 0; t < Form.type.options.length; t++)
+ {
+   if (Form.type.options[t].value == "c")
+   {
+     Form.type.selectedIndex = t;
+     break;
+   }
+ }
+
+ // täida elemendivalik
+ ChangeElementOptions(Form);
+
+ // vali automaatselt esimene objekt (kui olemas)
+ if (Form.element && Form.element.length > 0)
+ {
+   var firstIndex = -1;
+   for (var i = 0; i < Form.element.length; i++)
+   {
+     var txt = (Form.element[i].text || "").replace(/\s/g,'');
+     if (txt !== "" && txt !== "_____________" && txt !== "-Kõik-")
+     {
+       firstIndex = i;
+       break;
+     }
+   }
+   if (firstIndex >= 0)
+   {
+     Form.element.selectedIndex = firstIndex;
+     doDisplayTimetable(Form, topDir);
+     return;
+   }
+ }
+ // kui midagi pole, ära näita welcome-lehte
+ Form.element.selectedIndex = -1;
+ return;
+}
+</script>
+</head>
+
+<body class="nav" onload="OnLoad(document.forms[0]);">
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" align="left">
+<tr bgcolor="#FFFFFF">
+<td>
+<form name="NavBar" method="post">
+
+<table width="100%" border="0" cellspacing="2" cellpadding="0">
+
+ <!-- week selection -->
+ <td align="left" class="tabelle">
+  <span class="selection">
+   <nobr>
+    Kalendrinädal<br>
+    <span class="absatz">&nbsp;<br></span>
+    <select name="week" class="selectbox" onChange="doDisplayTimetable(NavBar, topDir);">
+     <option value="39">22.9.2025</option>
+    </select>
+   </nobr>
+  </span>
+ </td>
+
+ <!-- type selection -->
+ <td align="left" class="tabelle">
+  <span class="selection">
+   <nobr>
+    Tüüp<br>
+    <span class="absatz">&nbsp;<br></span>
+    <select name="type" class="selectbox" onChange="ChangeElementOptions(NavBar);">
+     <option value="c">Klassid</option>
+     <option value="t">Õpetajad</option>
+     <option value="r">Ruumid</option>
+    </select>
+   </nobr>
+  </span>
+ </td>
+
+ <!-- element selection -->
+ <td align="left" class="tabelle">
+  <span class="selection">
+   <nobr>
+    Objekt<br>
+    <span class="absatz">&nbsp;<br></span>
+    <select name="element" class="selectbox" onChange="doDisplayTimetable(NavBar, topDir);">
+     <option value="1">_____________</option>
+    </select>
+   </nobr>
+  </span>
+ </td>
+
+ <!-- tühiväli -->
+ <td width="100%" class="tabelle"></td>
+
+ <!-- school info -->
+ <td align="right" class="tabelle">
+  <nobr>
+   <span class="schoolname">
+    Suure-Jaani Kool<img src="punkt.gif">EST - Suure-Jaani<br>
+   </span>
+   <span class="absatz">&nbsp;<br></span>
+   <span class="description">
+    SJK Tunniplaan 2025/2026 õppeaastal I pa<img src="punkt.gif"><br>
+    Staatus: 15.10.2025 14:36
+   </span>
+  </nobr>
+ </td>
+
+</table>
+</form>
+</td>
+</tr>
+</table>
+
+<script>
+window.addEventListener("load", function() {
+  // Leia kõik tabelid lehel
+  var tables = document.getElementsByTagName("table");
+  for (var i = 0; i < tables.length; i++) {
+    var t = tables[i];
+    // kontrolli, kas tabel sisaldab iseloomulikku teksti (pealkirja veerud)
+    var txt = (t.innerText || "").replace(/\s+/g, ' ');
+    if (/Nr\.|Õp[, ]Aine|Õpperühm|Õp,Aine,Ruum/i.test(txt)) {
+      t.style.display = "none";
+      console.log("Peideti detailtabel (index " + i + ")");
+      break; // peidame ainult esimese sobiva tabeli
+    }
+  }
+});
+</script>
+
+
+</body>
+</html>
