@@ -91,16 +91,19 @@ function WeekOfYear(mydate)
 function doDisplayTimetable(Form, topDir) {
     if (Form.element.selectedIndex < 0)
         return;
-    var week = Form.week[Form.week.selectedIndex].value;
-    var type = Form.type[Form.type.selectedIndex].value;
-    var FileName = type + n2str(Form.element[Form.element.selectedIndex].value) + ".htm";
-    var url;
-    if (topDir == "w")
-        url =  week + "/" + type + "/" + FileName;
-    else
-        url =  type + "/" + week + "/" + FileName;
-    //parent.main.location = url; In Firefox it is not allowed to just set the location (CORS issue)
-    //Instead use postMessage to tell the parent that it should change its location
+
+    var week = Form.week[Form.week.selectedIndex].value; // 39
+    var type = Form.type[Form.type.selectedIndex].value; // c
+    
+    // Võtame nime otse menüüst (nt "1a") ja teeme sellest "Kla1" vms
+    // Kuna su failid on Kla1, Kla2, siis peame teadma nende järjekorda.
+    // Lihtsaim viis: kasutame valitud elemendi indexit + 1
+    var fileNumber = Form.element.selectedIndex + 1;
+    var FileName = "Kla" + fileNumber + ".htm"; 
+
+    var url = week + "/" + type + "/" + FileName;
+    
+    console.log("Üritan avada: " + url); // See aitab brauseri konsoolis vigu leida
     parent.postMessage(url, '*');
 }
 
@@ -124,3 +127,4 @@ function setselclass(cmd)
            el.disabled = false;        
     }
 } 
+
